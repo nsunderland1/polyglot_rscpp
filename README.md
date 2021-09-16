@@ -126,6 +126,70 @@ namespace std {
 
 And just like that, our Rust program is valid C++! You can check the full source in [polyglot.rs](./polyglot.rs) and try compiling both ways either locally or using the links above.
 
+## But Wait
+
+Those of you who are smarter than me might've immediately noticed that the trick for hiding the dangling `*/` reveals a simpler pattern that we can abuse to make Rust/C++ polyglots. What happens if we stick some Rust on the same line?
+
+```cpp
+/*
+/*
+*/
+
+#define fn int
+
+// */ use std::io::Write;
+
+fn main() {
+}
+```
+
+C++ treats it as part of a comment! With this in mind, we can do some horrible things.
+
+```cpp
+// polyglot_columns.rs
+/*/**/ #include <iostream>                            // */
+/*/**/ int main() {                                   // */ fn main() {
+/*/**/     std::cout << "Hello world" << std::endl;   // */     println!("Hello world");
+/*/**/ }                                              // */ }
+```
+
+Our source is now lined up perfectly, and we don't need macros! The best part is that aside from some cases with comments, this approach will generalize _perfectly_ to allow us to write polyglots without having to do any hacking. We can take this a step further still. A lot of Rust is valid C++ and vice versa, so let's try to cut down on code duplication a bit.
+
+```cpp
+// fibonacci_columns.rs
+/* /**/ #include <iostream>                                      // */
+/*/**/ uint32_t fibonacci(uint32_t n)                            // */ fn fibonacci(mut n: u32) -> u32
+                                        {
+                                           if (n < 2) { return n; }
+/*/**/     uint32_t                                              // */ let mut
+                                           f0 = 0;
+/*/**/     uint32_t                                              // */ let mut
+                                           f1 = 1;
+/*/**/     uint32_t                                              // */ let mut
+                                           temp = 0;
+                                           while (n > 1) {
+                                               temp = f1;
+                                               f1 = f0 + f1;
+                                               f0 = temp;
+                                               n = n - 1;
+                                           }
+
+                                           return f1;
+                                        }
+
+/* /**/ int                                                      // */ fn
+                                        main() {
+/* /**/     std::cout <<                                         // */ println!("{}",
+                                            fibonacci(10)
+/* /**/               << std::endl                               // */ )
+                                            ;
+                                        }
+```
+
+Try it on [godbolt.org](https://godbolt.org/z/1oxbKznMs) or the [Rust Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=59b26d43cfdadf121585ae48ad12d671).
+
+The implications for cross-language development here are _tremendous_.
+
 ## Applications
 
 Please don't.
